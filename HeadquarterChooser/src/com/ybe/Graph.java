@@ -16,7 +16,7 @@ public class Graph {
 
     public Graph(List<City> cities, List<Edge> edges) {
         this.cities = cities;
-        this.edges = edges;
+        Graph.edges = edges;
     }
 
     /**

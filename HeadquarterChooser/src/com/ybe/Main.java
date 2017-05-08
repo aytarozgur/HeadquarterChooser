@@ -3,10 +3,14 @@ package com.ybe;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 public class Main {
 
@@ -22,17 +26,28 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please Enter The Graph Name : ");
 
+        String pathOfFile = new java.io.File(".").getCanonicalPath();
+
         String graphPath = new java.io.File(".").getCanonicalPath() + "\\src\\com\\ybe\\graphs\\" + scanner.nextLine();
+
+
+        try (Stream<Path> filePathStream=Files.walk(Paths.get(pathOfFile))) {
+            filePathStream.forEach(filePath -> {
+                if (Files.isRegularFile(filePath)) {
+                    System.out.println(filePath);
+                }
+            });
+        }
 
         File graphFile = new File(graphPath);
 
-        int numberOfEdges;
         String optimalCity = null;
+        int totalOfDistances = Integer.MAX_VALUE;
 
         try {
             scanner = new Scanner(graphFile);
 
-            numberOfEdges = scanner.nextInt();
+            scanner.nextInt();
 
             ArrayList<Integer> entries = new ArrayList<>();
             ArrayList<Integer> vertices = new ArrayList<>();
@@ -60,27 +75,47 @@ public class Main {
 
             for (int i = 0; i < entries.size(); i=i+3)  {
                 addLine("Edge_" + edgeCounter, entries.get(i), entries.get(i+1),entries.get(i+2));
-                System.out.println("\nEdges: " + edges.get(edges.size()-1));
                 edgeCounter++;
+            }
+
+            for (Edge edge1 : edges) {
+                System.out.println("Edges:" + edge1);
             }
 
             Graph graph = new Graph(nodes, edges);
             DijkstraAlgorithm dijkstraAlgorithm = new DijkstraAlgorithm(graph);
 
-            for (int i = 0; i < nodes.size(); i++) {
-                dijkstraAlgorithm.execute(nodes.get(i));
-                for (int j = 0; j < nodes.size(); j++) {
-                    LinkedList<City> path = dijkstraAlgorithm.getPath(nodes.get(nodes.size()-1));
-                    System.out.println("\nPath of " + nodes.get(i).toString() + " to " + nodes.get(nodes.size()-1).toString() + ": " + path);
-                }
-            }
-
             for (Edge edge : edges) {
                 if (edge.getSource().equals(nodes.get(4)) && edge.getDestination().equals(nodes.get(3)))    {
-                    System.out.println("Destination of the lane " + nodes.get(3).toString()+ " to " + nodes.get(4).toString() + " is graph1.txt" + edge.getWeight());
+                    System.out.println("Destination of the lane " + nodes.get(4).toString()+ " to " + nodes.get(3).toString() + " is " + edge.getWeight());
                 }
             }
 
+            for (int i = 0; i < nodes.size(); i++) {
+                int totalEdgeWeights = 0;
+                for (int j = 0; j < nodes.size(); j++) {
+                    dijkstraAlgorithm.execute(nodes.get(i));
+                    LinkedList<City> path = dijkstraAlgorithm.getPath(nodes.get(j));
+                    System.out.println("\nPath of " + nodes.get(i).toString() + " to " + nodes.get(j).toString() + ": " + path);
+                    if (i == j) System.out.println("No lane has been found. Destination is 0");
+                    else {
+                        for (int k = 0; k<path.size()-1; k++)   {
+                            for (Edge edge : edges) {
+
+                                if (edge.getSource().equals(path.get(k)) && edge.getDestination().equals(path.get(k + 1)))  {
+                                    System.out.println("Destination of the lane " + path.get(k).toString() + " to " + path.get(k+1) + " is " + edge.getWeight());
+                                    totalEdgeWeights+=edge.getWeight();
+                                }
+                            }
+                        }
+                    }
+                }
+                if (totalOfDistances>totalEdgeWeights)  {
+                    totalOfDistances = totalEdgeWeights;
+                    optimalCity = nodes.get(i).toString();
+                }
+            }
+            System.out.println("\nThe Optimal City to install Headquarters is " + optimalCity);
         }catch (FileNotFoundException e)    {
             e.printStackTrace();
         }
@@ -88,6 +123,8 @@ public class Main {
 
     private static void addLine(String laneId, int sourceLocNo, int destLocNo, int distance) {
         Edge edge = new Edge(laneId, nodes.get(sourceLocNo-1), nodes.get(destLocNo-1), distance);
+        Edge edgeTurnBack = new Edge(laneId, nodes.get(destLocNo-1), nodes.get(sourceLocNo-1), distance);
         edges.add(edge);
+        edges.add(edgeTurnBack);
     }
 }

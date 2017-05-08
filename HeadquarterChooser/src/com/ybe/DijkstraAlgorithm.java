@@ -27,10 +27,10 @@ public class DijkstraAlgorithm {
     }
 
     public void execute	(City source) {
-        settledCities = new HashSet<City>();
-        unSettledCities = new HashSet<City>();
-        distances = new HashMap<City, Integer>();
-        predecessors = new HashMap<City, City>();
+        settledCities = new HashSet<>();
+        unSettledCities = new HashSet<>();
+        distances = new HashMap<>();
+        predecessors = new HashMap<>();
         distances.put(source, 0);
         unSettledCities.add(source);
         while (unSettledCities.size() > 0) {
@@ -70,12 +70,11 @@ public class DijkstraAlgorithm {
     }
 
     private List<City> getNeighbors(City node) {
-        List<City> neighbors = new ArrayList<City>();
-        for (Edge edge : edges) {
-            if (edge.getSource().equals(node) && !isSettled(edge.getDestination())) {
+        List<City> neighbors = new ArrayList<>();
+        for (Edge edge : edges)
+            if ((edge.getSource().equals(node))&& !isSettled(edge.getDestination())) {
                 neighbors.add(edge.getDestination());
             }
-        }
         return neighbors;
     }
 
@@ -102,7 +101,7 @@ public class DijkstraAlgorithm {
      **********/
 
     public LinkedList<City> getPath(City target) {
-        LinkedList<City> path = new LinkedList<City>();
+        LinkedList<City> path = new LinkedList<>();
         City step = target;
         // check if a path exists
         if (predecessors.get(step) == null) {
